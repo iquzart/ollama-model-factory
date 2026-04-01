@@ -13,96 +13,132 @@ RESET='\033[0m'
 DIVIDER="========================================"
 SEPARATOR="----------------------------------------"
 
-# -------- colored output helpers --------
+# -------- helpers --------
 info() { echo -e "${CYAN}$*${RESET}"; }
 success() { echo -e "${GREEN}$*${RESET}"; }
 warn() { echo -e "${YELLOW}$*${RESET}"; }
 error() { echo -e "${RED}$*${RESET}"; }
 bold() { echo -e "${BOLD}$*${RESET}"; }
 
-# -------- usage --------
+MODEL_DIR="./models"
+
 usage() {
   echo "$DIVIDER"
   bold "Usage:"
-  echo "  $0 <model> [tag]"
+  echo "  $0"
   echo ""
-  bold "Description:"
-  echo "  Build an Ollama model from models/Modelfile.<model>"
-  echo "  Automatically generates model name and tag."
+  bold "Options:"
+  echo "  - Select a model to build"
+  echo "  - Or choose ALL to build all models"
   echo ""
-  bold "Arguments:"
-  echo "  <model>    Model name (required)"
-  echo "  [tag]      Optional tag (default: current date YYYY-MM-DD)"
-  echo ""
-  bold "Examples:"
-  echo "  $0 qwen3-optimized"
-  echo "  $0 qwen3-optimized v1"
-  echo "  $0 llama3-devops 2026-03-26"
+  bold "Naming convention:"
+  echo "  Modelfile.qwen25-stable → qwen25:stable"
   echo "$DIVIDER"
 }
 
-# -----------------------------
-# Args
-# -----------------------------
-MODEL="${1:-}"
-TAG_INPUT="${2:-}"
-
-# Help flag
-if [[ "${MODEL}" == "-h" || "${MODEL}" == "--help" ]]; then
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   usage
   exit 0
 fi
 
-if [[ -z "$MODEL" ]]; then
-  error "Missing required argument: <model>"
-  echo ""
-  usage
+# -----------------------------
+# Discover models
+# -----------------------------
+if [[ ! -d "$MODEL_DIR" ]]; then
+  error "Models directory not found: $MODEL_DIR"
   exit 1
 fi
 
-# Default tag = current date
-TAG="${TAG_INPUT:-$(date +%Y-%m-%d)}"
+mapfile -t FILES < <(ls "$MODEL_DIR"/Modelfile.* 2>/dev/null || true)
 
-# File naming convention
-MODELFILE="models/Modelfile.${MODEL}"
-
-# Construct final model name
-MODEL_NAME="${MODEL}:${TAG}"
-
-# -----------------------------
-# Validation
-# -----------------------------
-if [[ ! -f "$MODELFILE" ]]; then
-  error "Modelfile not found: $MODELFILE"
+if [[ ${#FILES[@]} -eq 0 ]]; then
+  error "No Modelfile.* found in $MODEL_DIR"
   exit 1
 fi
 
 # -----------------------------
-# Info
+# List models
 # -----------------------------
 echo "$DIVIDER"
-bold "Building Ollama Model"
+bold "Available Models"
 echo "$SEPARATOR"
-info "Input Model : $MODEL"
-info "Tag         : $TAG"
-info "Model Name  : $MODEL_NAME"
-info "Modelfile   : $MODELFILE"
+
+MODELS=()
+i=1
+
+for file in "${FILES[@]}"; do
+  name=$(basename "$file" | sed 's/Modelfile\.//')
+  MODELS+=("$name")
+  echo "$i) $name"
+  ((i++))
+done
+
+echo ""
+echo "a) ALL models"
 echo "$DIVIDER"
 echo ""
 
 # -----------------------------
-# Build
+# Selection
 # -----------------------------
-info "Running: ollama create $MODEL_NAME -f $MODELFILE"
-echo ""
+read -p "Select a model (1-${#MODELS[@]} or 'a' for all): " choice
 
-ollama create "$MODEL_NAME" -f "$MODELFILE"
+build_model() {
+  local MODEL="$1"
+  local MODELFILE="$MODEL_DIR/Modelfile.$MODEL"
+
+  if [[ "$MODEL" != *-* ]]; then
+    error "Invalid model format: $MODEL"
+    return 1
+  fi
+
+  local BASE="${MODEL%%-*}"
+  local TAG="${MODEL#*-}"
+  local MODEL_NAME="${BASE}:${TAG}"
+
+  echo ""
+  echo "$DIVIDER"
+  bold "Building Model: $MODEL_NAME"
+  echo "$SEPARATOR"
+
+  info "Modelfile: $MODELFILE"
+  info "Running: ollama create $MODEL_NAME -f $MODELFILE"
+  echo ""
+
+  ollama create "$MODEL_NAME" -f "$MODELFILE"
+
+  success "Built: $MODEL_NAME"
+}
 
 # -----------------------------
-# Done
+# Execute selection
 # -----------------------------
-echo ""
-success "Model built successfully"
-echo "Run:"
-bold "  ollama run $MODEL_NAME"
-echo ""
+if [[ "$choice" == "a" || "$choice" == "A" ]]; then
+  bold "Building ALL models..."
+  echo "$DIVIDER"
+
+  for MODEL in "${MODELS[@]}"; do
+    build_model "$MODEL"
+  done
+
+  echo ""
+  success "All models built successfully"
+  echo "$DIVIDER"
+
+elif [[ "$choice" =~ ^[0-9]+$ ]]; then
+  if [ "$choice" -lt 1 ] || [ "$choice" -gt "${#MODELS[@]}" ]; then
+    error "Invalid selection"
+    exit 1
+  fi
+
+  MODEL="${MODELS[$((choice - 1))]}"
+  build_model "$MODEL"
+
+  echo ""
+  success "Model build completed"
+  echo "$DIVIDER"
+
+else
+  error "Invalid input"
+  exit 1
+fi
