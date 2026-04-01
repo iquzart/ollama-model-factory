@@ -1,5 +1,5 @@
-# Qwen 3 model → better reasoning/coding
-FROM qwen3:8b-q4_K_M
+# Optimized for OmniCoder-9B on M3
+FROM carstenuhlig/omnicoder-9b:q4_k_m
 
 # --- Balanced creativity vs accuracy ---
 # Low temp + Mirostat 2 is the "pro" combo for coding accuracy
@@ -11,7 +11,7 @@ PARAMETER repeat_penalty 1.1
 # --- Performance ---
 # 8192 is very doable on 18GB RAM for an 8B model and better for large scripts
 PARAMETER num_ctx 8192
-PARAMETER num_predict 256 
+PARAMETER num_predict 512
 
 # --- Hardware: Apple Silicon Specifics ---
 # Full Metal offloading (CRITICAL for speed)

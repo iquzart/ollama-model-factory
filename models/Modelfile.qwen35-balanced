@@ -1,0 +1,46 @@
+# 9B model but tuned for speed
+FROM qwen3.5:9b-q4_K_M
+
+# --- Sampling Controls ---
+# Lower temperature improves determinism and stability for coding tasks
+PARAMETER temperature 0.2
+
+# Limits the token pool to the top K most probable tokens
+# Higher = more diversity, lower = more speed + determinism
+PARAMETER top_k 40
+
+# Nucleus sampling: considers tokens that make up 90% of probability mass
+# Balances quality and coherence
+PARAMETER top_p 0.9
+
+# Penalizes repetition to avoid loops or redundant outputs
+PARAMETER repeat_penalty 1.1
+
+
+# --- Context & Output Limits ---
+# Maximum context window (tokens)
+# Lowering reduces memory pressure and improves inference speed
+PARAMETER num_ctx 8192
+
+# Maximum number of tokens to generate per response
+# Keep low for faster responses and lower latency
+PARAMETER num_predict 256
+
+
+# --- Hardware Acceleration ---
+# Enable Metal GPU offloading on Apple Silicon
+# -1 means use all available GPU layers automatically
+PARAMETER num_gpu -1
+
+# Number of CPU threads used during inference
+# Best aligned with performance cores (avoid over-subscription)
+PARAMETER num_thread 5
+
+# --- DevOps-focused behavior ---
+SYSTEM """
+You are a highly capable coding and DevOps assistant.
+- Be structured and precise.
+- Use Markdown for code blocks with appropriate language tags.
+- Provide production-ready, secure solutions.
+- Clearly state uncertainty.
+"""
