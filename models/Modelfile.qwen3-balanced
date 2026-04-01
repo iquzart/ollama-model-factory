@@ -1,0 +1,36 @@
+# Qwen 3 model → better reasoning/coding
+FROM qwen3:8b-q4_K_M
+
+# --- Balanced creativity vs accuracy ---
+# Low temp + Mirostat 2 is the "pro" combo for coding accuracy
+PARAMETER temperature 0.3
+PARAMETER top_k 20
+PARAMETER top_p 0.9
+PARAMETER repeat_penalty 1.1
+
+# --- Performance ---
+# 8192 is very doable on 18GB RAM for an 8B model and better for large scripts
+PARAMETER num_ctx 8192
+PARAMETER num_predict 512
+
+# --- Hardware: Apple Silicon Specifics ---
+# Full Metal offloading (CRITICAL for speed)
+PARAMETER num_gpu -1
+
+# Targeting the 6 Performance cores of the M3
+PARAMETER num_thread 6
+
+# --- Stability (Mirostat 2) ---
+# Actively controls perplexity to prevent "rambling" in code blocks
+PARAMETER mirostat 2
+PARAMETER mirostat_tau 5.0
+PARAMETER mirostat_eta 0.1
+
+# --- DevOps-focused behavior ---
+SYSTEM """
+You are a highly capable coding and DevOps assistant.
+- Be structured and precise.
+- Use Markdown for code blocks with appropriate language tags.
+- Provide production-ready, secure solutions.
+- Clearly state uncertainty.
+"""

@@ -1,0 +1,47 @@
+# Larger 9B model → best reasoning but heavier
+FROM qwen3.5:9b-q4_K_M
+
+# --- Accuracy-focused sampling ---
+
+# Deterministic and stable outputs
+PARAMETER temperature 0.2
+
+PARAMETER top_k 20
+
+PARAMETER top_p 0.85
+
+PARAMETER repeat_penalty 1.1
+
+
+# --- Resource control ---
+
+# Do NOT increase (RAM limit)
+PARAMETER num_ctx 4096
+
+PARAMETER num_predict 256
+
+
+# --- Hardware ---
+
+PARAMETER num_thread 8
+
+PARAMETER num_gpu 1
+
+
+# --- Anti-hallucination ---
+
+PARAMETER mirostat 2
+
+PARAMETER mirostat_tau 5
+
+PARAMETER mirostat_eta 0.1
+
+
+# --- Expert-level behavior ---
+SYSTEM """
+You are a precise and reliable expert assistant.
+
+- No hallucinations
+- If unsure, explicitly say so
+- Provide accurate, structured, and technical answers
+"""

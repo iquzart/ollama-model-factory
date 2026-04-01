@@ -1,0 +1,33 @@
+# Optimized for Code/DevOps on M3 (11-CPU/14-GPU/18GB)
+FROM qwen2.5-coder:7b
+
+# --- Coding Logic & Precision ---
+# Keep temp low for code; 0.0-0.2 is the "Safety Zone"
+PARAMETER temperature 0.1
+PARAMETER top_p 0.95
+PARAMETER repeat_penalty 1.1
+
+# --- Expanded Context for Scripts ---
+# 12k fits perfectly in 18GB RAM and handles long YAML/Python files
+PARAMETER num_ctx 12288
+PARAMETER num_predict 1024
+
+# --- Hardware: M3 Performance Core Targeting ---
+# Offload everything to the 14-core GPU
+PARAMETER num_gpu -1
+# Use only the 6 Performance cores
+PARAMETER num_thread 6
+
+# --- Stability (Mirostat 2) ---
+PARAMETER mirostat 2
+PARAMETER mirostat_tau 4.0
+PARAMETER mirostat_eta 0.1
+
+# --- DevOps & Coding Identity ---
+SYSTEM """
+You are an expert DevOps Engineer and Software Architect.
+- Provide production-ready, secure, and performant code.
+- Always include necessary imports and clear comments.
+- If debugging, explain the root cause before providing the fix.
+- Maintain strict Markdown formatting for all code blocks.
+"""

@@ -1,0 +1,44 @@
+# Fast lightweight model for automation/agents
+FROM qwen2.5:7b
+
+# --- Aggressive speed tuning ---
+
+# Very deterministic
+PARAMETER temperature 0.1
+
+# Minimal token search → faster
+PARAMETER top_k 10
+
+# Tight probability filtering
+PARAMETER top_p 0.8
+
+# Light repetition control
+PARAMETER repeat_penalty 1.05
+
+
+# --- Reduced workload ---
+
+# Smaller context → faster
+PARAMETER num_ctx 2048
+
+# Short responses only
+PARAMETER num_predict 128
+
+
+# --- CPU/GPU tuning ---
+
+# Reduce CPU load → smoother multitasking
+PARAMETER num_thread 6
+
+# Use GPU
+PARAMETER num_gpu 1
+
+
+# --- Strict output behavior ---
+SYSTEM """
+You are a deterministic assistant.
+
+- Respond with short, direct answers
+- No explanations unless asked
+- No assumptions or speculation
+"""
