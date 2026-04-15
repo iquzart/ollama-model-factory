@@ -9,16 +9,16 @@ PARAMETER top_p 0.9
 PARAMETER repeat_penalty 1.1
 
 # --- Performance ---
-# 8192 is very doable on 18GB RAM for an 8B model and better for large scripts
-PARAMETER num_ctx 8192
-PARAMETER num_predict 512
+# 4096/256 keeps the model responsive on 18 GB RAM
+PARAMETER num_ctx 4096
+PARAMETER num_predict 256
 
 # --- Hardware: Apple Silicon Specifics ---
 # Full Metal offloading (CRITICAL for speed)
 PARAMETER num_gpu -1
 
-# Targeting the 6 Performance cores of the M3
-PARAMETER num_thread 6
+# Match the M3 Pro performance-core count
+PARAMETER num_thread 5
 
 # --- Stability (Mirostat 2) ---
 # Actively controls perplexity to prevent "rambling" in code blocks

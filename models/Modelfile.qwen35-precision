@@ -18,8 +18,8 @@ PARAMETER num_predict 256
 
 
 # --- Hardware ---
-PARAMETER num_thread 8
-PARAMETER num_gpu 1
+PARAMETER num_thread 5
+PARAMETER num_gpu -1
 
 
 # --- Anti-hallucination ---

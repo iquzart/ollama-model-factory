@@ -18,9 +18,8 @@ PARAMETER repeat_penalty 1.1
 
 
 # --- Context & Output Limits ---
-# Maximum context window (tokens)
-# Lowering reduces memory pressure and improves inference speed
-PARAMETER num_ctx 8192
+# 16k keeps 9B prompt evaluation more responsive on 18 GB RAM
+PARAMETER num_ctx 16384
 
 # Maximum number of tokens to generate per response
 # Keep low for faster responses and lower latency

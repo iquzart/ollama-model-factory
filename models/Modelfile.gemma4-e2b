@@ -1,0 +1,13 @@
+FROM gemma4:e2b
+
+# Sets the context window to 16k
+PARAMETER num_ctx 16384
+
+# Ensures the model stays on the M3 GPU
+PARAMETER num_gpu 99
+
+# Prevents repetitive code loops
+PARAMETER repeat_penalty 1.1
+
+# Optimal temperature for Gemma 4 reasoning
+PARAMETER temperature 1.0
